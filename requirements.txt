@@ -1,3 +1,4 @@
+nltk
 pandas
 pyenchant
 python-rake
