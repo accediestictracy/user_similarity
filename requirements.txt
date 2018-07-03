@@ -1,0 +1,5 @@
+pandas
+pyenchant
+python-rake
+scipy
+sklearn
