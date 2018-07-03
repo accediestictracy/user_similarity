@@ -1,4 +1,6 @@
 data
 saves
 
+*__pycache__
+
 .idea

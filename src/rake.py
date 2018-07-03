@@ -11,13 +11,16 @@ def filter(tweet, dictionary):
     print(tweet)
     if tweet.startswith('RT @'):
         tweet = tweet[tweet.index(' ', 3) + 1:]
-        print(tweet)
+    tweet = re.sub(r'^https?:\/\/.*[\r\n]*', '', tweet, flags=re.MULTILINE)
+    tweet = re.sub(r'[^ a-zA-Z]', '', tweet, flags=re.MULTILINE)
+    print(tweet)
     english_words = []
-    regex = re.compile('[^a-zA-Z]')
-    tweet = regex.sub(' ', tweet)
     for word in tweet.split():
+        if word.startswith('@'):
+            continue
+        word = re.sub(r'(\w)\1+', r'\1', word)
         if dictionary.check(word) or word in ['Trump', ] and word not in ['RT', 'rt', 'Rt']:
-            english_words.append(word)
+            english_words.append(word.lower())
     return english_words
 
 
@@ -32,11 +35,13 @@ def word2vec(model):
     return result
 
 
-def process_tweets():
+def process_tweets(directory):
     dictionary = enchant.Dict("en_US")
     rake = RAKE.Rake('SmartStopList.py')
     label2vec = word2vec('../data/glove_twitter_27B_25d.txt')
-    for file in sorted(os.listdir("../data/tweets")):
+    if not os.path.isdir('../data/labels/'):
+        os.makedirs('../data/labels/')
+    for file in sorted(os.listdir(directory)):
         if file.endswith(".csv"):
             df = pd.read_csv(f'../data/tweets/{file}', header=0, encoding="utf-8")
             vectorlist = []
@@ -45,11 +50,9 @@ def process_tweets():
                 if len(filtered):
                     labels = rake.run(' '.join(filtered))
                     if len(labels):
-                        vector = []
                         for keyword in labels[0][0].split():
                             try:
                                 vector = label2vec[keyword]
-                                print(tweet)
                                 print(filtered)
                                 print(labels)
                                 print(keyword)
@@ -65,4 +68,4 @@ def process_tweets():
 
 
 if __name__ == '__main__':
-    process_tweets()
+    process_tweets('../data/tweets')

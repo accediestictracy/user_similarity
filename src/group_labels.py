@@ -1,6 +1,7 @@
 from collections import defaultdict
-import pickle
+import json
 import os
+import pickle
 
 import numpy as np
 from scipy import spatial
@@ -53,14 +54,13 @@ def calculate_similarity_matrix():
         users[file]['data'] = usrtopic2vecs
         users[file]['topicscores'] = usrtopicscores
 
-        #j += 1
+        j += 1
         if j == 2:
             break
 
     clusters = 50
     kmeans = KMeans(n_clusters=clusters)
     kmeans.fit(dataset)
-    centroid = kmeans.cluster_centers_
     labels = kmeans.labels_
 
     for i, datarow in enumerate(dataset):
@@ -74,14 +74,14 @@ def calculate_similarity_matrix():
         for user2, uservalue2 in users.items():
             if user1 == user2 or (user1, user2) in users_matrix or (user2, user1) in users_matrix:
                 continue
-            clist = common(uservalue1, uservalue2)     #common groups of user i and user j
+            clist = common(uservalue1, uservalue2)  # common groups of user i and user j
             num = len(clist)
             user1_child = []
             user2_child = []
             vec_user1 = 0
             vec_user2 = 0
             for k in clist:
-                user1_child.extend(child(k, uservalue1))# labels of user_i in group[k]
+                user1_child.extend(child(k, uservalue1))  # labels of user_i in group[k]
                 user2_child.extend(child(k, uservalue2))
 
                 for tag in user1_child:
@@ -92,8 +92,6 @@ def calculate_similarity_matrix():
             users_matrix[(user1, user2)] = (1-spatial.distance.cosine(vec_user1, vec_user2)) * num
             counter += 1
             print(counter)
-    with open('../saves/matrix.txt', 'w') as f:
-        f.write(users_matrix)
 
     with open('../saves/result_users.txt', 'wb') as fh:
         pickle.dump(users, fh, pickle.HIGHEST_PROTOCOL)
