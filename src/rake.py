@@ -17,15 +17,16 @@ def filter(tweet, dictionary):
     print(tweet)
     if tweet.startswith('RT @'):
         tweet = tweet[tweet.index(' ', 3) + 1:]
-    tweet = re.sub(r'https?:\/\/.*[\r\n]*', '', tweet, flags=re.MULTILINE)
-    tweet = re.sub(r'[^ \n\ra-zA-Z]', '', tweet, flags=re.MULTILINE)
+    tweet = re.sub(r'https?:\/\/.*[\r\n]*', ' ', tweet, flags=re.MULTILINE)
+    tweet = re.sub(r'[^ \n\ra-zA-Z]', ' ', tweet, flags=re.MULTILINE)
     english_words = []
     for word in tweet.split():
         if word.startswith('@'):
             continue
-        word = re.sub(r'(\w)\1+', r'\1', word)
-        if dictionary.check(word) or word in ['Trump', ] and word not in ['RT', 'rt', 'Rt']:
-            english_words.append(word.lower())
+        for w in [word, re.sub(r'(\w)\1+', r'\1', word)]:
+            if dictionary.check(w) or w in ['Trump', ] and w not in ['RT', 'rt', 'Rt']:
+                english_words.append(w.lower())
+                break
     print(english_words)
     return english_words
 
@@ -47,14 +48,14 @@ def process_tweets(directory):
     label2vec = word2vec(os.path.join(DATA_DIR, 'glove_twitter_27B_25d.txt'))
 
     for file in sorted(os.listdir(directory)):
-        if file.endswith(".csv"):
+        if file.endswith(".csv"):  # and file == 'BarackObama_tweets.csv':
             df = pd.read_csv(os.path.join(directory, file), header=0, encoding="utf-8")
             new_df = pd.DataFrame(columns=['tweet_id', 'screen_name', 'created_at', 'hashtags', 'text'])
             new_df.set_index(['tweet_id'])
             vectorlist = []
             for _, row in df.iterrows():
                 filtered = filter(row['text'], dictionary)
-                if len(filtered) and all(len(x) > 3 for x in filtered):
+                if len(filtered):
                     row['text'] = ' '.join(filtered)
                     new_df = new_df.append(row)
                     labels = rake.run(' '.join(filtered))
@@ -62,7 +63,8 @@ def process_tweets(directory):
                         for keyword in labels[0][0].split():
                             try:
                                 vector = label2vec[keyword]
-                                print(filtered)
+                                if len(keyword) < 3:
+                                    break
                                 print(labels)
                                 print(keyword)
                                 to_add_vector = [row['tweet_id']] + vector
