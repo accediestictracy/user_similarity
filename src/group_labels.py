@@ -58,7 +58,7 @@ def calculate_similarity_matrix():
         if j == 2:
             break
 
-    clusters = 50
+    clusters = 1000
     kmeans = KMeans(n_clusters=clusters)
     kmeans.fit(dataset)
     labels = kmeans.labels_
@@ -68,6 +68,7 @@ def calculate_similarity_matrix():
         user = labels_vec_list[i][0]
         users[user].setdefault('groups', {}).setdefault(labels[i], []).append(topic)
 
+    max_clist = 0
     users_matrix = {}
     counter = 0
     for user1, uservalue1 in users.items():
@@ -76,6 +77,7 @@ def calculate_similarity_matrix():
                 continue
             clist = common(uservalue1, uservalue2)  # common groups of user i and user j
             num = len(clist)
+            max_clist = max(max_clist, num)
             user1_child = []
             user2_child = []
             vec_user1 = 0
@@ -86,10 +88,12 @@ def calculate_similarity_matrix():
 
                 for tag in user1_child:
                     vec_user1 += np.array(uservalue1['data'][tag][0]) * np.average(uservalue1['topicscores'][tag])
+                vec_user1 /= len(user1_child)
                 for tag in user2_child:
                     vec_user2 += np.array(uservalue2['data'][tag][0]) * np.average(uservalue2['topicscores'][tag])
+                vec_user2 /= len(user2_child)
 
-            users_matrix[(user1, user2)] = (1-spatial.distance.cosine(vec_user1, vec_user2)) * num
+            users_matrix[(user1, user2)] = (1-spatial.distance.cosine(vec_user1, vec_user2)) * num / 1000.0
             counter += 1
             print(counter)
 
