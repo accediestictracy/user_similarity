@@ -9,8 +9,11 @@ from sklearn.cluster import KMeans
 
 
 def common(usera, userb):
-    s1 = set(usera['groups'].keys())
-    return s1.intersection(set(userb['groups'].keys()))
+    avga = np.average([len(x) for x in usera['groups'].values()])
+    avgb = np.average([len(x) for x in userb['groups'].values()])
+    ratio = 2.0
+    s1 = set([key for key, value in usera['groups'].items() if len(value) > avga * ratio])
+    return s1.intersection(set([key for key, value in userb['groups'].items() if len(value) > avgb * ratio]))
 
 
 def child(label, user):
