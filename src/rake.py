@@ -54,7 +54,7 @@ def process_tweets(directory):
             vectorlist = []
             for _, row in df.iterrows():
                 filtered = filter(row['text'], dictionary)
-                if len(filtered):
+                if len(filtered) and all(len(x) > 3 for x in filtered):
                     row['text'] = ' '.join(filtered)
                     new_df = new_df.append(row)
                     labels = rake.run(' '.join(filtered))

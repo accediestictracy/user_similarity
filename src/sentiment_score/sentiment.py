@@ -96,7 +96,7 @@ def get_sentiment_scores():
                     print(row)
                     vector = [
                         str(row['tweet_id']),
-                        row.get('screen_name', '').encode('utf-8'),
+                        str(row.get('screen_name', '')).encode('utf-8'),
                         row['created_at'].encode('utf-8'),
                         row.get('hashtags', '').encode('utf-8'),
                         str(sentiment_score(row['text']))

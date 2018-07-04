@@ -34,7 +34,7 @@ def calculate_similarity_matrix():
             labels_lines = labels_file_handler.readlines()
             if len(score_lines) == 0 or len(labels_lines) == 0:
                 continue
-            for i, line in enumerate(labels_lines):
+            for line in labels_lines:
                 label_items = line.strip().split(',')
                 score = None
                 for line2 in score_lines:
