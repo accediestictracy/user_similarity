@@ -2,6 +2,7 @@
 Sentiment prediction module
 """
 import os
+import shutil
 
 import nltk
 import numpy as np
@@ -82,22 +83,25 @@ def sentiment_score(sent):
 
 
 def get_sentiment_scores():
-    if not os.path.isdir('../../data/scores'):
-        os.makedirs('../../data/scores/')
-    for file in sorted(os.listdir('../../data/tweets')):
+    if os.path.isdir('../../data/scores'):
+        shutil.rmtree('../../data/scores')
+    os.makedirs('../../data/scores/')
+    files = os.listdir('../../data/tweets')
+    for file in sorted(files):
         if file.endswith(".csv"):
+            print(file)
             df = pd.read_csv('../../data/tweets/' + file, header=0, encoding="utf-8")
             with open('../../data/scores/' + file.replace('tweets', 'tweets-1'), 'w') as file_handler:
-                for index, tweet in enumerate(df['text']):
+                for index, row in df.iterrows():
+                    print(row)
                     vector = [
-                        str(df['tweet_id'][index]),
-                        df['screen_name'][index].encode('utf-8'),
-                        df['created_at'][index].encode('utf-8'),
-                        df['hashtags'][index].encode('utf-8'),
-                        str(sentiment_score(tweet))
+                        str(row['tweet_id']),
+                        row.get('screen_name', '').encode('utf-8'),
+                        row['created_at'].encode('utf-8'),
+                        row.get('hashtags', '').encode('utf-8'),
+                        str(sentiment_score(row['text']))
                     ]
-                    print(vector)
-                    file_handler.write(''.join(vector) + '\n')
+                    file_handler.write(','.join(vector) + '\n')
 
 
 if __name__ == '__main__':

@@ -70,7 +70,7 @@ def process_tweets(directory):
                                 break
                             except KeyError:
                                 pass
-            new_df.to_csv(os.path.join(DATA_DIR, 'preprocessed', file.replace('tweets', 'tweets-1')))
+            new_df.to_csv(os.path.join(DATA_DIR, 'preprocessed', file.replace('tweets', 'prepped')))
             with open(os.path.join(DATA_DIR, 'labels', file.replace("tweets", "label2v")), 'w') as f:
                 writer = csv.writer(f)
                 writer.writerows(vectorlist)

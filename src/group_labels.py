@@ -54,7 +54,7 @@ def calculate_similarity_matrix():
         users[file]['data'] = usrtopic2vecs
         users[file]['topicscores'] = usrtopicscores
 
-        j += 1
+        #j += 1
         if j == 2:
             break
 
