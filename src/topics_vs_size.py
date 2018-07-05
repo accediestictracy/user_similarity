@@ -1,16 +1,10 @@
 import os
 import re
-import shutil
 
-import csv
 import enchant
+import matplotlib.pyplot as plt
 import pandas as pd
 import RAKE
-
-# from sentiment_score.sentiment import sentiment_score
-
-
-DATA_DIR = '../data'
 
 
 def filter(tweet, dictionary):
@@ -42,51 +36,45 @@ def word2vec(model):
     return result
 
 
-def process_tweets(directory):
+def topics(sizes):
     dictionary = enchant.Dict("en_US")
     rake = RAKE.Rake('SmartStopList.py')
-    label2vec = word2vec(os.path.join(DATA_DIR, 'glove_twitter_27B_25d.txt'))
+    label2vec = word2vec(os.path.join('../data-4', 'glove_twitter_27B_25d.txt'))
+    result = {}
+    all_keywords = set()
 
-    all_set = os.listdir(directory)
+    all_set = os.listdir('../data/tweets')
     for set_index, file in enumerate(sorted(all_set)):
-        if file.endswith(".csv"):  # and file == 'BarackObama_tweets.csv':
+        if file.endswith(".csv"):
             try:
-                df = pd.read_csv(os.path.join(directory, file), header=0, encoding="utf-8")
+                df = pd.read_csv(os.path.join('../data/tweets', file), header=0, encoding="utf-8")
             except:
                 continue
-            new_df = pd.DataFrame(columns=['tweet_id', 'screen_name', 'created_at', 'hashtags', 'text'])
-            new_df.set_index(['tweet_id'])
-            vectorlist = []
+
             for _, row in df.iterrows():
                 filtered = filter(row['text'], dictionary)
                 if len(filtered):
-                    row['text'] = ' '.join(filtered)
-                    new_df = new_df.append(row)
                     labels = rake.run(' '.join(filtered))
                     if len(labels):
                         for keyword in labels[0][0].split():
                             try:
-                                vector = label2vec[keyword]
-                                if len(keyword) < 3:
+                                # if len(keyword) < 3:
+                                    # break
+                                if keyword in label2vec:
+                                    all_keywords.add(keyword)
                                     break
-                                #print(labels)
-                                #print(keyword)
-                                to_add_vector = [row['tweet_id']] + vector
-                                vectorlist.append(to_add_vector)
-                                break
                             except KeyError:
                                 pass
-            new_df.to_csv(os.path.join(DATA_DIR, 'preprocessed', file.replace('tweets', 'prepped')))
-            with open(os.path.join(DATA_DIR, 'labels', file.replace("tweets", "label2v")), 'w') as f:
-                writer = csv.writer(f)
-                writer.writerows(vectorlist)
-            print(f'{set_index} / {len(all_set)}')
+        print(f'{set_index} / {len(all_set)}')
+        if set_index + 1 in sizes:
+            result[set_index + 1] = len(all_keywords)
+    return result
 
 
 if __name__ == '__main__':
-    for dirname in ['labels', 'preprocessed']:
-        if os.path.isdir(os.path.join(DATA_DIR, dirname)):
-            shutil.rmtree(os.path.join(DATA_DIR, dirname))
-        os.makedirs(os.path.join(DATA_DIR, dirname))
-
-    process_tweets(os.path.join(DATA_DIR, 'tweets'))
+    data = topics([500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 5500, 6000, 6500])
+    xs = sorted(data.keys())
+    ys = [data[x] for x in xs]
+    plt.plot(xs, ys, 'ro')
+    plt.show()
+    plt.savefig('topics_vs_size.png')

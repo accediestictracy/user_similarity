@@ -87,13 +87,15 @@ def get_sentiment_scores():
         shutil.rmtree('../../data/scores')
     os.makedirs('../../data/scores/')
     files = os.listdir('../../data/tweets')
-    for file in sorted(files):
+    for set_index, file in enumerate(sorted(files)):
         if file.endswith(".csv"):
-            print(file)
-            df = pd.read_csv('../../data/tweets/' + file, header=0, encoding="utf-8")
+            try:
+                df = pd.read_csv('../../data/tweets/' + file, header=0, encoding="utf-8")
+            except:
+                continue
             with open('../../data/scores/' + file.replace('tweets', 'tweets-1'), 'w') as file_handler:
                 for index, row in df.iterrows():
-                    print(row)
+                    #print(row)
                     vector = [
                         str(row['tweet_id']),
                         str(row.get('screen_name', '')).encode('utf-8'),
@@ -102,6 +104,7 @@ def get_sentiment_scores():
                         str(sentiment_score(row['text']))
                     ]
                     file_handler.write(','.join(vector) + '\n')
+            print(str(set_index) + ' / ' + str(len(files)))
 
 
 if __name__ == '__main__':
