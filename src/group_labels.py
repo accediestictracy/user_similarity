@@ -1,5 +1,4 @@
 from collections import defaultdict
-import json
 import os
 import pickle
 import shutil
@@ -62,7 +61,7 @@ def calculate_similarity_matrix():
         if j == 20:
             break
 
-    clusters = 500
+    clusters = 250
     kmeans = KMeans(n_clusters=clusters)
     kmeans.fit(dataset)
     labels = kmeans.labels_
