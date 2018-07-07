@@ -2,6 +2,7 @@ from collections import defaultdict
 import json
 import os
 import pickle
+import shutil
 
 import numpy as np
 from scipy import spatial
@@ -11,7 +12,7 @@ from sklearn.cluster import KMeans
 def common(usera, userb):
     avga = np.average([len(x) for x in usera['groups'].values()])
     avgb = np.average([len(x) for x in userb['groups'].values()])
-    ratio = 2.0
+    ratio = 1
     s1 = set([key for key, value in usera['groups'].items() if len(value) > avga * ratio])
     return s1.intersection(set([key for key, value in userb['groups'].items() if len(value) > avgb * ratio]))
 
@@ -58,10 +59,10 @@ def calculate_similarity_matrix():
         users[file]['topicscores'] = usrtopicscores
 
         #j += 1
-        if j == 2:
+        if j == 20:
             break
 
-    clusters = 1000
+    clusters = 500
     kmeans = KMeans(n_clusters=clusters)
     kmeans.fit(dataset)
     labels = kmeans.labels_
@@ -76,7 +77,8 @@ def calculate_similarity_matrix():
     counter = 0
     for user1, uservalue1 in users.items():
         for user2, uservalue2 in users.items():
-            if user1 == user2 or (user1, user2) in users_matrix or (user2, user1) in users_matrix:
+            pair = tuple(sorted((user1.lower(), user2.lower())))
+            if user1 == user2 or pair in users_matrix:
                 continue
             clist = common(uservalue1, uservalue2)  # common groups of user i and user j
             num = len(clist)
@@ -96,10 +98,17 @@ def calculate_similarity_matrix():
                     vec_user2 += np.array(uservalue2['data'][tag][0]) * np.average(uservalue2['topicscores'][tag])
                 vec_user2 /= len(user2_child)
 
-            users_matrix[(user1, user2)] = (1-spatial.distance.cosine(vec_user1, vec_user2)) * num / 1000.0
+            if clist:
+                users_matrix[pair] = (1-spatial.distance.cosine(vec_user1, vec_user2)) * num / 1000.0
+            else:
+                users_matrix[pair] = 0
+
             counter += 1
             print(counter)
 
+    if os.path.isdir('../saves'):
+        shutil.rmtree('../saves')
+    os.makedirs('../saves')
     with open('../saves/result_users.txt', 'wb') as fh:
         pickle.dump(users, fh, pickle.HIGHEST_PROTOCOL)
     with open('../saves/result_users_matrix.txt', 'wb') as fh:

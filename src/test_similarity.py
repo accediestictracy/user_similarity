@@ -51,7 +51,7 @@ if __name__ == '__main__':
     with open('../saves/result_labels_vec_list.txt', 'rb') as fh:
         labels_vec_list = pickle.load(fh)
 
-    temp = users_matrix[('BarackObama_label2v.csv', 'MichelleObama_label2v.csv')]
+    temp = users_matrix[('barackobama_label2v.csv', 'michelleobama_label2v.csv')]
 
     # print 5 most similar users
     print('Most different users:')
